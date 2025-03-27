@@ -3,10 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from PIL import Image
-
-# Load the model and scaler
-model = joblib.load('diabetes_model.pkl')
-scaler = joblib.load('scaler.pkl')
+import os
 
 # Set app title and icon
 st.set_page_config(page_title="Diabetes Prediction App", page_icon="🩺")
@@ -22,12 +19,16 @@ The model was trained on the Pima Indians Diabetes Dataset.
 st.sidebar.header("About")
 st.sidebar.info("""
 This prediction model uses Logistic Regression algorithm to predict diabetes risk.
-Enter your health metrics on the left and click 'Predict' to see results.
+Enter your health metrics below and click 'Predict' to see results.
 """)
 
-# Add image
-image = Image.open('diabetes_image.jpg')  # You can add your own image
-st.image(image, caption='Diabetes Risk Assessment', use_column_width=True)
+# Try to load model and scaler with error handling
+try:
+    model = joblib.load('diabetes_model.pkl')
+    scaler = joblib.load('scaler.pkl')
+except FileNotFoundError as e:
+    st.error(f"Model files not found: {e}")
+    st.stop()
 
 # Create input form
 st.header("Enter Your Health Metrics")
@@ -50,46 +51,50 @@ with st.form("prediction_form"):
 
 # When form is submitted
 if submitted:
-    # Create input dataframe
-    input_data = pd.DataFrame({
-        'Pregnancies': [pregnancies],
-        'Glucose': [glucose],
-        'BloodPressure': [blood_pressure],
-        'SkinThickness': [skin_thickness],
-        'Insulin': [insulin],
-        'BMI': [bmi],
-        'DiabetesPedigreeFunction': [diabetes_pedigree],
-        'Age': [age]
-    })
+    try:
+        # Create input dataframe
+        input_data = pd.DataFrame({
+            'Pregnancies': [pregnancies],
+            'Glucose': [glucose],
+            'BloodPressure': [blood_pressure],
+            'SkinThickness': [skin_thickness],
+            'Insulin': [insulin],
+            'BMI': [bmi],
+            'DiabetesPedigreeFunction': [diabetes_pedigree],
+            'Age': [age]
+        })
+        
+        # Scale the input data
+        scaled_data = scaler.transform(input_data)
+        
+        # Make prediction
+        prediction = model.predict(scaled_data)
+        probability = model.predict_proba(scaled_data)
+        
+        # Display results
+        st.header("Prediction Results")
+        
+        if prediction[0] == 0:
+            st.success(f"Low Risk: You are likely NOT diabetic ({(probability[0][0]*100):.2f}% probability)")
+        else:
+            st.error(f"High Risk: You are likely diabetic ({(probability[0][1]*100):.2f}% probability)")
+        
+        # Show probability meter
+        st.subheader("Risk Probability")
+        st.progress(int(probability[0][1] * 100))
+        st.write(f"{probability[0][1]*100:.2f}% probability of having diabetes")
+        
+        # Interpretation
+        st.subheader("Interpretation")
+        if probability[0][1] < 0.3:
+            st.info("Low diabetes risk - Maintain healthy lifestyle")
+        elif probability[0][1] < 0.7:
+            st.warning("Moderate diabetes risk - Consider consulting a doctor")
+        else:
+            st.error("High diabetes risk - Please consult a healthcare professional")
     
-    # Scale the input data
-    scaled_data = scaler.transform(input_data)
-    
-    # Make prediction
-    prediction = model.predict(scaled_data)
-    probability = model.predict_proba(scaled_data)
-    
-    # Display results
-    st.header("Prediction Results")
-    
-    if prediction[0] == 0:
-        st.success(f"Low Risk: You are likely NOT diabetic ({(probability[0][0]*100):.2f}% probability)")
-    else:
-        st.error(f"High Risk: You are likely diabetic ({(probability[0][1]*100):.2f}% probability)")
-    
-    # Show probability meter
-    st.subheader("Risk Probability")
-    st.progress(int(probability[0][1] * 100))
-    st.write(f"{probability[0][1]*100:.2f}% probability of having diabetes")
-    
-    # Interpretation
-    st.subheader("Interpretation")
-    if probability[0][1] < 0.3:
-        st.info("Low diabetes risk - Maintain healthy lifestyle")
-    elif probability[0][1] < 0.7:
-        st.warning("Moderate diabetes risk - Consider consulting a doctor")
-    else:
-        st.error("High diabetes risk - Please consult a healthcare professional")
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {str(e)}")
 
 # Add footer
 st.markdown("---")
