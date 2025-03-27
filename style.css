@@ -1,0 +1,56 @@
+/* Main container styling */
+.stApp {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Form styling */
+.stForm {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Button styling */
+.stButton>button {
+    border-radius: 8px;
+    border: none;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Metric cards */
+.stMetric {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 10px 20px !important;
+    transition: all 0.3s;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #4a8cff !important;
+    color: white !important;
+}
+
+/* Dark mode toggle */
+[data-testid="stButton"] {
+    margin-top: 10px;
+}
